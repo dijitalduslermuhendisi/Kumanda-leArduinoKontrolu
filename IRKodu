@@ -1,0 +1,52 @@
+#include <IRremote.h>
+
+const int RECV_PIN = 11;
+
+const int LED_PIN_2 = 2;
+const int LED_PIN_3 = 3;
+
+const unsigned long CODE_2 = 0xFB1D629A;
+const unsigned long CODE_3 = 0xAFAFDB5E;
+
+bool led2State = false;
+bool led3State = false;
+
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+
+void setup() {
+  Serial.begin(9600);
+  irrecv.enableIRIn();
+
+  pinMode(LED_PIN_2, OUTPUT);
+  pinMode(LED_PIN_3, OUTPUT);
+  
+  digitalWrite(LED_PIN_2, LOW);
+  digitalWrite(LED_PIN_3, LOW);
+}
+
+void loop() {
+  if (irrecv.decode(&results)) {
+    Serial.print("Kod: ");
+    Serial.println(results.value, HEX);
+
+    if (results.value == CODE_2) {
+      led2State = !led2State;
+      led3State = false;
+      digitalWrite(LED_PIN_2, led2State ? HIGH : LOW);
+      digitalWrite(LED_PIN_3, LOW);
+    } else if (results.value == CODE_3) {
+      led3State = !led3State;
+      led2State = false;
+      digitalWrite(LED_PIN_3, led3State ? HIGH : LOW);
+      digitalWrite(LED_PIN_2, LOW);
+    } else {
+      led2State = false;
+      led3State = false;
+      digitalWrite(LED_PIN_2, LOW);
+      digitalWrite(LED_PIN_3, LOW);
+    }
+
+    irrecv.resume();
+  }
+}
